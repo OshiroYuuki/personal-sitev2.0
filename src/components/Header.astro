@@ -1,6 +1,7 @@
 ---
 import Container from "@components/Container.astro";
 import Link from "@components/Link.astro";
+import HidariGomon from "@components/HidariGomon.astro";
 import { SITE } from "@consts";
 ---
 
@@ -8,7 +9,8 @@ import { SITE } from "@consts";
   <Container>
     <div class="flex flex-wrap gap-y-2 justify-between">
       <Link href="/" underline={false}>
-        <div class="font-semibold">
+        <div class="flex items-center gap-2 font-semibold text-oki-ocean dark:text-oki-ocean-light">
+          <HidariGomon class="size-4 opacity-70" />
           {SITE.NAME}
         </div>
       </Link>

@@ -16,42 +16,75 @@ body {
   @apply size-full;
 }
 
+/* Minsa (ミンサー) diamond-dot pattern — ocean teal diamond, coral accent dots */
 body {
   @apply font-sans antialiased;
   @apply flex flex-col;
-  @apply bg-stone-100 dark:bg-stone-900;
-  @apply text-black/50 dark:text-white/75;
+  @apply bg-oki-sand dark:bg-oki-night;
+  @apply text-oki-indigo/80 dark:text-oki-sand/85;
+  font-size: 1.125rem;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Cpolygon points='30,4 56,30 30,56 4,30' fill='none' stroke='%230092A3' stroke-width='1.5' opacity='0.07'/%3E%3Ccircle cx='30' cy='30' r='3.5' fill='%230092A3' opacity='0.07'/%3E%3Ccircle cx='30' cy='4' r='2' fill='%23D4563A' opacity='0.09'/%3E%3Ccircle cx='56' cy='30' r='2' fill='%23D4563A' opacity='0.09'/%3E%3Ccircle cx='30' cy='56' r='2' fill='%23D4563A' opacity='0.09'/%3E%3Ccircle cx='4' cy='30' r='2' fill='%23D4563A' opacity='0.09'/%3E%3C/svg%3E");
+}
+
+html.dark body {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Cpolygon points='30,4 56,30 30,56 4,30' fill='none' stroke='%2300BAD0' stroke-width='1.5' opacity='0.05'/%3E%3Ccircle cx='30' cy='30' r='3.5' fill='%2300BAD0' opacity='0.05'/%3E%3Ccircle cx='30' cy='4' r='2' fill='%23E87858' opacity='0.06'/%3E%3Ccircle cx='56' cy='30' r='2' fill='%23E87858' opacity='0.06'/%3E%3Ccircle cx='30' cy='56' r='2' fill='%23E87858' opacity='0.06'/%3E%3Ccircle cx='4' cy='30' r='2' fill='%23E87858' opacity='0.06'/%3E%3C/svg%3E");
 }
 
 header {
   @apply fixed top-0 left-0 right-0 z-50 py-5;
-  @apply bg-stone-100/75 dark:bg-stone-900/25;
+  @apply bg-oki-sand/80 dark:bg-oki-night/85;
   @apply backdrop-blur-sm saturate-200;
 }
 
+header::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(to right, #0092A3, #3A7050, #C09040, #D4563A, #C0408A);
+  opacity: 0.7;
+}
+
 main {
-  @apply flex-1 py-32;
+  @apply flex-1 py-32 px-4;
+}
+
+main > div {
+  background-color: rgba(250, 244, 232, 0.92);
+  border-radius: 1.25rem;
+  border: 1px solid rgba(0, 146, 163, 0.12);
+  box-shadow: 0 2px 20px rgba(26, 37, 80, 0.06);
+  padding-block: 2rem;
+}
+
+html.dark main > div {
+  background-color: rgba(21, 32, 64, 0.92);
+  border-color: rgba(0, 186, 208, 0.10);
+  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.22);
 }
 
 footer {
   @apply py-5 text-sm;
+  border-top: 1px solid rgba(0, 146, 163, 0.15);
 }
 
 article {
   @apply max-w-full prose dark:prose-invert prose-img:mx-auto prose-img:my-auto;
   @apply prose-headings:font-semibold prose-p:font-serif;
-  @apply prose-headings:text-black prose-headings:dark:text-white;
+  @apply prose-headings:text-oki-indigo dark:prose-headings:text-oki-cream;
 }
 
 @layer utilities {
   article a {
     @apply font-sans text-current underline underline-offset-2;
-    @apply decoration-black/15 dark:decoration-white/30;
+    @apply decoration-oki-ocean/30 dark:decoration-oki-ocean-light/30;
     @apply transition-colors duration-300 ease-in-out;
   }
   article a:hover {
-    @apply text-black dark:text-white;
-    @apply decoration-black/25 dark:decoration-white/50;
+    @apply text-oki-ocean dark:text-oki-ocean-light;
+    @apply decoration-oki-ocean/55 dark:decoration-oki-ocean-light/55;
   }
 }
 

@@ -2,6 +2,7 @@
 import Container from "@components/Container.astro";
 import { SITE } from "@consts";
 import BackToTop from "@components/BackToTop.astro";
+import HidariGomon from "@components/HidariGomon.astro";
 ---
 
 <footer class="animate">
@@ -12,7 +13,8 @@ import BackToTop from "@components/BackToTop.astro";
       </div>
     </div>
     <div class="flex justify-between items-center">
-      <div>
+      <div class="flex items-center gap-2">
+        <HidariGomon class="size-5 opacity-30 text-oki-ocean dark:text-oki-ocean-light" />
         &copy; 2024 {`|`} {SITE.NAME}
       </div>
       <div class="flex flex-wrap gap-1 items-center">
