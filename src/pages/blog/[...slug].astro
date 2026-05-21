@@ -5,6 +5,7 @@ import Container from "@components/Container.astro";
 import FormattedDate from "@components/FormattedDate.astro";
 import { readingTime } from "@lib/utils";
 import BackToPrev from "@components/BackToPrev.astro";
+import Link from "@components/Link.astro";
 
 export async function getStaticPaths() {
   const posts = (await getCollection("blog"))
@@ -19,6 +20,29 @@ type Props = CollectionEntry<"blog">;
 
 const post = Astro.props;
 const { Content } = await post.render();
+
+// Build series prev/next
+let prevPost: CollectionEntry<"blog"> | null = null;
+let nextPost: CollectionEntry<"blog"> | null = null;
+
+if (post.data.series) {
+  const seriesPosts = (await getCollection("blog"))
+    .filter(p => !p.data.draft && p.data.series === post.data.series)
+    .sort((a, b) => a.data.date.valueOf() - b.data.date.valueOf());
+
+  const idx = seriesPosts.findIndex(p => p.slug === post.slug);
+  if (idx > 0)                        prevPost = seriesPosts[idx - 1];
+  if (idx < seriesPosts.length - 1)   nextPost = seriesPosts[idx + 1];
+}
+
+const seriesColors: Record<string, string> = {
+  PATS: "bg-oki-ocean/15 text-oki-ocean dark:bg-oki-ocean/20 dark:text-oki-ocean-light border border-oki-ocean/30",
+  demo: "bg-oki-gold/15 text-oki-gold dark:bg-oki-gold/20 dark:text-oki-gold border border-oki-gold/30",
+};
+const defaultSeriesColor = "bg-oki-hibiscus/15 text-oki-hibiscus dark:bg-oki-hibiscus/20 dark:text-oki-hibiscus border border-oki-hibiscus/30";
+const seriesColor = post.data.series
+  ? (seriesColors[post.data.series] ?? defaultSeriesColor)
+  : "";
 ---
 
 <PageLayout title={post.data.title} description={post.data.description}>
@@ -29,7 +53,7 @@ const { Content } = await post.render();
       </BackToPrev>
     </div>
     <div class="space-y-1 my-10">
-      <div class="animate flex items-center gap-1.5">
+      <div class="animate flex flex-wrap items-center gap-2">
         <div class="font-base text-sm">
           <FormattedDate date={post.data.date} />
         </div>
@@ -37,6 +61,11 @@ const { Content } = await post.render();
         <div class="font-base text-sm">
           {readingTime(post.body)}
         </div>
+        {post.data.series && (
+          <span class={`inline-block px-2.5 py-0.5 rounded-full text-xs font-medium ${seriesColor}`}>
+            {post.data.series}
+          </span>
+        )}
       </div>
       <div class="animate text-2xl font-semibold text-oki-indigo dark:text-oki-cream">
         {post.data.title}
@@ -45,5 +74,38 @@ const { Content } = await post.render();
     <article class="animate">
       <Content />
     </article>
+
+    <!-- Series navigation -->
+    {post.data.series && (prevPost || nextPost) && (
+      <div class="animate mt-16 pt-6 border-t border-oki-ocean/15 dark:border-oki-ocean/10">
+        <div class="text-sm font-semibold text-oki-ocean dark:text-oki-ocean-light mb-4">
+          More in {post.data.series}
+        </div>
+        <div class="flex flex-col sm:flex-row justify-between gap-4">
+          {prevPost ? (
+            <Link href={`/blog/${prevPost.slug}`} underline={false}>
+              <div class="group flex items-start gap-2 max-w-xs">
+                <span class="mt-0.5 opacity-50 group-hover:opacity-100 transition-opacity">←</span>
+                <div>
+                  <div class="text-xs opacity-50 mb-0.5">Previous</div>
+                  <div class="text-sm font-medium">{prevPost.data.title}</div>
+                </div>
+              </div>
+            </Link>
+          ) : <div />}
+          {nextPost && (
+            <Link href={`/blog/${nextPost.slug}`} underline={false}>
+              <div class="group flex items-start gap-2 max-w-xs text-right sm:text-right">
+                <div>
+                  <div class="text-xs opacity-50 mb-0.5">Next</div>
+                  <div class="text-sm font-medium">{nextPost.data.title}</div>
+                </div>
+                <span class="mt-0.5 opacity-50 group-hover:opacity-100 transition-opacity">→</span>
+              </div>
+            </Link>
+          )}
+        </div>
+      </div>
+    )}
   </Container>
 </PageLayout>

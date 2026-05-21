@@ -8,49 +8,170 @@ import { BLOG } from "@consts";
 const data = (await getCollection("blog"))
   .filter(post => !post.data.draft)
   .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
-  
-type Acc = {
-  [year: string]: CollectionEntry<"blog">[];
-}
+
+const allSeries = [...new Set(
+  data.filter(p => p.data.series).map(p => p.data.series as string)
+)].sort();
+
+type Acc = { [year: string]: CollectionEntry<"blog">[] }
 
 const posts = data.reduce((acc: Acc, post) => {
-    const year = post.data.date.getFullYear().toString();
-    if (!acc[year]) {
-      acc[year] = [];
-    }
-    acc[year].push(post);
-    return acc;
-  }, {});
+  const year = post.data.date.getFullYear().toString();
+  if (!acc[year]) acc[year] = [];
+  acc[year].push(post);
+  return acc;
+}, {});
 
-const years = Object.keys(posts).sort((a, b) => parseInt(b) - parseInt(a)); 
+const years = Object.keys(posts).sort((a, b) => parseInt(b) - parseInt(a));
+
+
+const ACTIVE_YEAR     = "px-2.5 py-0.5 rounded-full text-xs border bg-oki-coral/20 text-oki-coral dark:text-oki-coral-light border-oki-coral/40 transition-all duration-200";
+const INACTIVE_YEAR   = "px-2.5 py-0.5 rounded-full text-xs border border-oki-indigo/20 dark:border-oki-sand/20 opacity-50 hover:opacity-90 transition-all duration-200";
+const ACTIVE_SERIES   = "px-2.5 py-0.5 rounded-full text-xs border bg-oki-ocean/15 text-oki-ocean dark:text-oki-ocean-light border-oki-ocean/30 transition-all duration-200";
+const INACTIVE_SERIES = "px-2.5 py-0.5 rounded-full text-xs border border-oki-indigo/20 dark:border-oki-sand/20 opacity-50 hover:opacity-90 transition-all duration-200";
 ---
 
 <PageLayout title={BLOG.TITLE} description={BLOG.DESCRIPTION}>
   <Container>
-    <div class="space-y-10">
-      <div class="animate font-semibold text-oki-indigo dark:text-oki-cream">
+    <div class="space-y-8">
+      <div class="animate font-semibold text-xl text-oki-indigo dark:text-oki-cream">
         Blog
       </div>
+
+      <!-- Collapsible filter panel -->
+      <details class="animate group w-fit">
+        <summary class="cursor-pointer list-none flex items-center gap-2 w-fit px-3 py-1.5 rounded-lg border border-oki-indigo/15 dark:border-oki-sand/15 hover:border-oki-ocean/40 transition-colors duration-200 select-none text-sm">
+          <svg xmlns="http://www.w3.org/2000/svg" class="filter-chevron size-3.5 transition-transform duration-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+          <span>Filter</span>
+          <span id="filter-active-dot" class="hidden size-1.5 rounded-full bg-oki-coral"></span>
+        </summary>
+
+        <div class="mt-3 pl-1 space-y-3 pt-3 border-t border-oki-ocean/10">
+          <!-- Year filter -->
+          <div class="flex flex-wrap gap-1.5 items-center">
+            <span class="text-xs opacity-50 w-12 shrink-0">Year</span>
+            <button data-year-filter="all" class={ACTIVE_YEAR}>All</button>
+            {years.map(year => (
+              <button data-year-filter={year} class={INACTIVE_YEAR}>{year}</button>
+            ))}
+          </div>
+
+          <!-- Series filter -->
+          {allSeries.length > 0 && (
+            <div class="flex flex-wrap gap-1.5 items-center">
+              <span class="text-xs opacity-50 w-12 shrink-0">Series</span>
+              <button data-series-filter="all" class={ACTIVE_SERIES}>All</button>
+              {allSeries.map(series => (
+                <button data-series-filter={series} class={INACTIVE_SERIES}>{series}</button>
+              ))}
+            </div>
+          )}
+        </div>
+      </details>
+
+      <!-- Post list -->
       <div class="space-y-4">
         {years.map(year => (
-          <section class="animate space-y-4">
+          <section class="animate space-y-4" data-year-section={year}>
             <div class="font-semibold text-oki-indigo dark:text-oki-cream">
               {year}
             </div>
-            <div>
-              <ul class="flex flex-col gap-4">
-                {
-                  posts[year].map((post) => (
-                    <li>
-                      <ArrowCard entry={post}/>
-                    </li>
-                  ))
-                }
-              </ul>
-            </div>
+            <ul class="flex flex-col gap-4">
+              {posts[year].map((post) => (
+                <li
+                  data-post-year={post.data.date.getFullYear().toString()}
+                  data-post-series={post.data.series ?? ""}
+                >
+                  <ArrowCard entry={post} />
+                </li>
+              ))}
+            </ul>
           </section>
         ))}
+
+        <p id="no-results" class="hidden text-sm opacity-50 py-4">
+          No posts match the selected filters.
+        </p>
       </div>
     </div>
   </Container>
 </PageLayout>
+
+<style>
+  details[open] .filter-chevron {
+    transform: rotate(180deg);
+  }
+</style>
+
+<script>
+  function initFilters() {
+    const yearBtns   = document.querySelectorAll<HTMLButtonElement>("[data-year-filter]");
+    const seriesBtns = document.querySelectorAll<HTMLButtonElement>("[data-series-filter]");
+    const items      = document.querySelectorAll<HTMLLIElement>("[data-post-year]");
+    const sections   = document.querySelectorAll<HTMLElement>("[data-year-section]");
+    const noResults  = document.getElementById("no-results");
+    const dot        = document.getElementById("filter-active-dot");
+
+    const ACTIVE_YEAR     = ["bg-oki-coral/20", "text-oki-coral", "dark:text-oki-coral-light", "border-oki-coral/40"];
+    const INACTIVE_YEAR   = ["border-oki-indigo/20", "dark:border-oki-sand/20", "opacity-50"];
+    const ACTIVE_SERIES   = ["bg-oki-ocean/15", "text-oki-ocean", "dark:text-oki-ocean-light", "border-oki-ocean/30"];
+    const INACTIVE_SERIES = ["border-oki-indigo/20", "dark:border-oki-sand/20", "opacity-50"];
+
+    let activeYear   = "all";
+    let activeSeries = "all";
+
+    function applyFilters() {
+      let anyVisible = false;
+
+      items.forEach(item => {
+        const year   = item.dataset.postYear   ?? "";
+        const series = item.dataset.postSeries ?? "";
+        const yearOk   = activeYear   === "all" || year   === activeYear;
+        const seriesOk = activeSeries === "all" || series === activeSeries;
+        item.style.display = (yearOk && seriesOk) ? "" : "none";
+        if (yearOk && seriesOk) anyVisible = true;
+      });
+
+      sections.forEach(section => {
+        const sectionYear = section.dataset.yearSection ?? "";
+        const yearOk = activeYear === "all" || sectionYear === activeYear;
+        if (!yearOk) { section.style.display = "none"; return; }
+        const visible = [...section.querySelectorAll<HTMLLIElement>("[data-post-year]")]
+          .some(el => el.style.display !== "none");
+        section.style.display = visible ? "" : "none";
+      });
+
+      if (noResults) noResults.style.display = anyVisible ? "none" : "";
+
+      // Show the dot when any filter is active
+      if (dot) dot.classList.toggle("hidden", activeYear === "all" && activeSeries === "all");
+    }
+
+    function setActive(btns: NodeListOf<HTMLButtonElement>, active: HTMLButtonElement, activeClasses: string[], inactiveClasses: string[]) {
+      btns.forEach(b => { b.classList.remove(...activeClasses); b.classList.add(...inactiveClasses); });
+      active.classList.remove(...inactiveClasses);
+      active.classList.add(...activeClasses);
+    }
+
+    yearBtns.forEach(btn => {
+      btn.addEventListener("click", () => {
+        activeYear = btn.dataset.yearFilter ?? "all";
+        setActive(yearBtns, btn, ACTIVE_YEAR, INACTIVE_YEAR);
+        applyFilters();
+      });
+    });
+
+    seriesBtns.forEach(btn => {
+      btn.addEventListener("click", () => {
+        activeSeries = btn.dataset.seriesFilter ?? "all";
+        setActive(seriesBtns, btn, ACTIVE_SERIES, INACTIVE_SERIES);
+        applyFilters();
+      });
+    });
+  }
+
+  document.addEventListener("DOMContentLoaded", initFilters);
+  document.addEventListener("astro:after-swap", initFilters);
+</script>
