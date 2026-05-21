@@ -2,7 +2,7 @@
 title: "Blog Collection"
 description: "How to add posts to your blog."
 date: "Mar 21 2024"
-series: 
+series: "demo"
 ---
 
 The `blog` collections is found in `src/content/blog`.
