@@ -4,7 +4,7 @@ import sitemap from "@astrojs/sitemap";
 import tailwind from "@astrojs/tailwind";
 
 export default defineConfig({
-  site: "https://oshiroyuuki.com",
+  site: "https://www.oshiroyuuki.com",
   base: "/",
   integrations: [mdx(), sitemap(), tailwind()],
 });
